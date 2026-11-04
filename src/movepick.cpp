@@ -163,7 +163,10 @@ MovePicker::MovePicker(const Position&              p,
     else
         first_stage = depth > 0 ? GOOD_CAPTURE : QSEARCH;
 
-    stage = ttm && pos.legal(ttm) ? TT : INIT_FIRST_STAGE;
+    // Outside check, qsearch searches only captures, so a quiet TT move is not returned
+    stage = ttm && (first_stage != QSEARCH || pos.capture_stage(ttm)) && pos.legal(ttm)
+            ? TT
+            : INIT_FIRST_STAGE;
 }
 
 // MovePicker constructor for ProbCut: we generate captures with Static Exchange
