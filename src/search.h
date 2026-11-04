@@ -380,8 +380,6 @@ class Worker {
     RelaxedAtomic<u64> nodes, tbHits, bestMoveChanges;
     int                selDepth, nmpMinPly;
 
-    Value optimism[COLOR_NB];
-
     Position  rootPos;
     StateInfo rootState;
     RootMoves rootMoves;
