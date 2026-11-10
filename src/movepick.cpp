@@ -18,6 +18,7 @@
 
 #include "movepick.h"
 
+#include <algorithm>
 #include <cassert>
 #include <limits>
 
@@ -151,13 +152,15 @@ MovePicker::MovePicker(const Position&              p,
                        const CapturePieceToHistory* cph,
                        const PieceToHistory**       ch,
                        const SharedHistories*       sh,
-                       int                          pl) :
+                       int                          pl,
+                       const SearchedList*          pcr) :
     pos(p),
     mainHistory(mh),
     lowPlyHistory(lph),
     captureHistory(cph),
     continuationHistory(ch),
     sharedHistory(sh),
+    probCutRefuted(pcr),
     ttMove(ttm),
     depth(d),
     ply(pl) {
@@ -300,7 +303,10 @@ dispatch:
 
     case GOOD_CAPTURE :
         if (Move move = select([&]() {
-                if (pos.see_ge(*cur, -cur->value / 18))
+                // Captures whose ProbCut search fell below beta go to the bad moves
+                if (pos.see_ge(*cur, -cur->value / 18)
+                    && std::find(probCutRefuted->begin(), probCutRefuted->end(), *cur)
+                         == probCutRefuted->end())
                     return true;
                 *endBadMoves++ = *cur;
                 return false;

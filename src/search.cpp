@@ -72,9 +72,6 @@ namespace {
 
 constexpr u64 NODES_LIMIT_OUTPUT = 10'000'000;
 
-constexpr int SEARCHEDLIST_CAPACITY = 32;
-using SearchedList                  = ValueList<Move, SEARCHEDLIST_CAPACITY>;
-
 // Reductions lookup table indexed by depth or move number.
 const std::array<int, MAX_MOVES> reductions = [] {
     std::array<int, MAX_MOVES> table{};
@@ -780,6 +777,7 @@ Value Search::Worker::search(
 
     SearchedList capturesSearched;
     SearchedList quietsSearched;
+    SearchedList probCutRefuted;
 
     // Step 1. Initialize node
     ss->inCheck   = pos.checkers();
@@ -1128,6 +1126,8 @@ Value Search::Worker::search(
                 if (!is_decisive(value))
                     return value - (probCutBeta - beta);
             }
+            else if (value < beta && probCutRefuted.size() < SEARCHEDLIST_CAPACITY)
+                probCutRefuted.push_back(move);
         }
     }
 
@@ -1145,7 +1145,7 @@ moves_loop:  // When in check, search starts here
 
 
     MovePicker mp(pos, ttData.move, depth, &mainHistory, &lowPlyHistory, &captureHistory, contHist,
-                  &sharedHistory, ss->ply);
+                  &sharedHistory, ss->ply, &probCutRefuted);
 
     value = bestValue;
 

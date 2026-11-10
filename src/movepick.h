@@ -28,6 +28,9 @@ namespace Stockfish {
 
 class Position;
 
+constexpr int SEARCHEDLIST_CAPACITY = 32;
+using SearchedList                  = ValueList<Move, SEARCHEDLIST_CAPACITY>;
+
 enum Stages : i8;
 
 // The MovePicker class is used to pick one legal move at a time from the
@@ -49,7 +52,8 @@ class MovePicker {
                const CapturePieceToHistory*,
                const PieceToHistory**,
                const SharedHistories*,
-               int);
+               int,
+               const SearchedList* = nullptr);
     MovePicker(const Position&, Move, int, const CapturePieceToHistory*);
     Move next_move();
     void skip_quiet_moves();
@@ -66,6 +70,7 @@ class MovePicker {
     const CapturePieceToHistory* captureHistory;
     const PieceToHistory**       continuationHistory;
     const SharedHistories*       sharedHistory;
+    const SearchedList*          probCutRefuted;
     Move                         ttMove;
     ExtMove *                    cur, *endCur, *endBadCaptures, *endBadMoves;
     Stages                       stage;
